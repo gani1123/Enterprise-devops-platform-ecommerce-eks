@@ -65,9 +65,9 @@ pipeline {
                                 -Dpackaging=war \
                                 -Dfile=target/ecommerce-api.war \
                                 -DrepositoryId=nexus-releases \
-                                -Durl=${NEXUS_URL} \
-                                -Dusername=${NEXUS_USER} \
-                                -Dpassword=${NEXUS_PASS}
+                                -Durl=$NEXUS_URL \
+                                -Dusername=$NEXUS_USER \
+                                -Dpassword=$NEXUS_PASS
                         """
                     }
                 }
