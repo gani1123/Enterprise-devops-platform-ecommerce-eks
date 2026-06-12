@@ -68,8 +68,6 @@ pipeline {
                 }
             }
         }
-            }
-        }
 
         stage('SonarQube Scan + Quality Gate') {
             steps {
