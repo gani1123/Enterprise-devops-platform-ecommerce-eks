@@ -31,8 +31,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    credentialsId: 'github-credentials',
-                    url: 'https://github.com/enterprise/ecommerce-api.git'
+                    credentialsId: 'github-cred',
+                    url: 'https://github.com/gani1123/Enterprise-devops-platform-ecommerce-eks.git'
                 sh 'echo "Commit: $(git rev-parse --short HEAD)"'
             }
         }
