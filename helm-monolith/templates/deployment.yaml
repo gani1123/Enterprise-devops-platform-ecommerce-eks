@@ -55,7 +55,7 @@ spec:
               value: "-Xms256m -Xmx768m "
           livenessProbe:
             httpGet:
-              path: {{ .Values.app.contextPath }}/health
+              path: {{ .Values.app.contextPath }}/ecommerce-api/health
               port: http
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
@@ -63,7 +63,7 @@ spec:
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.app.contextPath }}/health
+              path: {{ .Values.app.contextPath }}/ecommerce-api/health
               port: http
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
