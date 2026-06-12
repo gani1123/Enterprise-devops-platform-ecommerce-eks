@@ -70,7 +70,7 @@ pipeline {
         stage('SonarQube Scan + Quality Gate') {
             steps {
                 dir('app-monolith') {
-                    withSonarQubeEnv('SonarQube') {
+                    withSonarQubeEnv('sonarqube') {
                         sh """
                             mvn sonar:sonar \
                                 -Dsonar.projectKey=ecommerce-api \
