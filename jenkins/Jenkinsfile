@@ -57,7 +57,7 @@ pipeline {
                         mvn deploy:deploy-file \
                             -DgroupId=com.enterprise \
                             -DartifactId=ecommerce-api \
-                            -Dversion=1.0.1 \
+                            -Dversion=1.0.2 \
                             -Dpackaging=war \
                             -Dfile=target/ecommerce-api.war \
                             -DrepositoryId=nexus-releases \
