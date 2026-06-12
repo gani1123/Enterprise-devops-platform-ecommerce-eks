@@ -5,7 +5,7 @@ pipeline {
         APP_NAME        = 'ecommerce-api'
         APP_VERSION     = '1.0.0'
         AWS_REGION      = 'us-east-1'
-        ECR_REGISTRY    = '123456789012.dkr.ecr.us-east-1.amazonaws.com'
+        ECR_REGISTRY    = '962800862954.dkr.ecr.us-east-1.amazonaws.com'
         ECR_REPO        = "${ECR_REGISTRY}/ecommerce-api"
         IMAGE_TAG       = "${APP_VERSION}-${BUILD_NUMBER}"
         NEXUS_URL       = 'http://32.193.251.152:8081/repository/maven-releases'
