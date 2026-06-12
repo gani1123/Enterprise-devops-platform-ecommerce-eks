@@ -1,0 +1,76 @@
+replicaCount: 2
+
+image:
+  repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/order-service
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+app:
+  name: order-service
+  version: "1.0.0"
+  port: 8080
+  contextPath: /ecommerce-api
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+env:
+  DB_HOST: "mysql.ecommerce.svc.cluster.local"
+  DB_NAME: "orders"
+  DB_USER: "appuser"
+  PRODUCT_SERVICE_URL: "http://product-service.ecommerce.svc.cluster.local:8080/ecommerce-api"
+
+secrets:
+  dbPasswordSecret: "ecommerce-db-secret"
+  dbPasswordKey: "password"
+
+livenessProbe:
+  initialDelaySeconds: 90
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+jmx:
+  enabled: true
+  port: 9090
+
+nodeSelector: {}
+tolerations: []
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - order-service
+          topologyKey: kubernetes.io/hostname

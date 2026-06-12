@@ -1,0 +1,8 @@
+pipeline:
+  defaultRegion: us-east-1
+  defaultEksCluster: enterprise-eks-us-east-1
+  defaultNamespace: ecommerce
+  sonarProjectMinimumCoverage: 80
+  trivySeverities: CRITICAL,HIGH
+  helmTimeout: 5m
+  buildRetentionCount: 10

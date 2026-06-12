@@ -1,0 +1,14 @@
+@Library('devops-pipeline-library') _
+
+deployWarToEKS(
+    appName:    'ecommerce-api',
+    appVersion: '1.0.0',
+    appDir:     'app-monolith',
+    nexusUrl:   'http://nexus:8081/repository/maven-releases',
+    ecrRepo:    '123456789012.dkr.ecr.us-east-1.amazonaws.com/ecommerce-api',
+    awsRegion:  'us-east-1',
+    eksCluster: 'enterprise-eks-us-east-1',
+    namespace:  'ecommerce',
+    helmChart:  'helm-monolith',
+    sonarUrl:   'http://sonarqube:9000'
+)

@@ -1,0 +1,85 @@
+---
+startDelaySeconds: 0
+ssl: false
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+rules:
+  # Tomcat HTTP connector metrics
+  - pattern: 'Catalina<type=GlobalRequestProcessor, name=\"(\w+-\w+)-(\d+)\"><>(\w+):'
+    name: tomcat_$3_total
+    labels:
+      port: "$2"
+      protocol: "$1"
+    help: Tomcat global request processor $3
+    type: COUNTER
+
+  - pattern: 'Catalina<j2eeType=Servlet, WebModule=//([-a-zA-Z0-9+&@#/%?=~_|!:.,;]*[-a-zA-Z0-9+&@#/%=~_|]), name=([-a-zA-Z0-9+/$%~_-|!.]*), J2EEApplication=none, J2EEServer=none><>(requestCount|maxTime|processingTime|errorCount):'
+    name: tomcat_servlet_$3_total
+    labels:
+      module: "$1"
+      servlet: "$2"
+    help: Tomcat servlet $3
+    type: COUNTER
+
+  # Tomcat thread pool metrics
+  - pattern: 'Catalina<type=ThreadPool, name="(\w+-\w+)-(\d+)"><>(currentThreadCount|currentThreadsBusy|keepAliveCount|pollerThreadCount|connectionCount):'
+    name: tomcat_threadpool_$3
+    labels:
+      port: "$2"
+      protocol: "$1"
+    help: Tomcat thread pool $3
+    type: GAUGE
+
+  # Tomcat connection pool
+  - pattern: 'Catalina<type=ThreadPool, name="(\w+-\w+)-(\d+)"><>maxThreads:'
+    name: tomcat_threadpool_max_threads
+    labels:
+      port: "$2"
+      protocol: "$1"
+    help: Tomcat thread pool max threads
+    type: GAUGE
+
+  # JVM Memory
+  - pattern: 'java.lang<type=Memory><HeapMemoryUsage>(\w+):'
+    name: jvm_heap_memory_$1_bytes
+    help: JVM heap memory $1
+    type: GAUGE
+
+  - pattern: 'java.lang<type=Memory><NonHeapMemoryUsage>(\w+):'
+    name: jvm_nonheap_memory_$1_bytes
+    help: JVM non-heap memory $1
+    type: GAUGE
+
+  # JVM GC
+  - pattern: 'java.lang<type=GarbageCollector, name=(.*)><>CollectionCount:'
+    name: jvm_gc_collection_count_total
+    labels:
+      gc: "$1"
+    help: JVM GC collection count
+    type: COUNTER
+
+  - pattern: 'java.lang<type=GarbageCollector, name=(.*)><>CollectionTime:'
+    name: jvm_gc_collection_time_ms_total
+    labels:
+      gc: "$1"
+    help: JVM GC collection time in milliseconds
+    type: COUNTER
+
+  # JVM Threads
+  - pattern: 'java.lang<type=Threading><>(ThreadCount|DaemonThreadCount|PeakThreadCount):'
+    name: jvm_threads_$1
+    help: JVM thread count $1
+    type: GAUGE
+
+  # JVM ClassLoading
+  - pattern: 'java.lang<type=ClassLoading><>(LoadedClassCount|UnloadedClassCount|TotalLoadedClassCount):'
+    name: jvm_classloading_$1
+    help: JVM class loading $1
+    type: GAUGE
+
+  # Operating System
+  - pattern: 'java.lang<type=OperatingSystem><>(ProcessCpuLoad|SystemCpuLoad|FreePhysicalMemorySize|TotalPhysicalMemorySize):'
+    name: jvm_os_$1
+    help: JVM OS metric $1
+    type: GAUGE

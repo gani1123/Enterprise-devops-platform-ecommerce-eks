@@ -1,0 +1,6 @@
+apiVersion: v2
+name: helm-order-service
+description: Helm chart for the Order Service WAR microservice
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

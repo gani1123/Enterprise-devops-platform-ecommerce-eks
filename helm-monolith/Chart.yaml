@@ -1,0 +1,6 @@
+apiVersion: v2
+name: helm-monolith
+description: Helm chart for the E-commerce Monolith WAR application on Tomcat
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
