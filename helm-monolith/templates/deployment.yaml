@@ -52,7 +52,7 @@ spec:
                   name: {{ .Values.secrets.dbPasswordSecret }}
                   key: {{ .Values.secrets.dbPasswordKey }}
             - name: JAVA_OPTS
-              value: "-Xms256m -Xmx768m -javaagent:/opt/jmx_prometheus_javaagent.jar={{ .Values.jmx.port }}:/opt/jmx-config.yaml"
+              value: "-Xms256m -Xmx768m "
           livenessProbe:
             httpGet:
               path: {{ .Values.app.contextPath }}/health
