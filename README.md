@@ -232,3 +232,27 @@ Register the library in Jenkins → Manage Jenkins → Configure System → Glob
 - Name: `devops-pipeline-library`
 - Source: Git URL of this repo, branch: `main`
 - Library path: `jenkins-shared-library`
+
+## Pipeline flow diagram
+
+```mermaid
+flowchart TB
+    A[Developer push] --> B
+
+    subgraph B[Jenkins CI/CD pipeline]
+        C[Maven build<br/>Compile and unit test] --> D[Nexus repo<br/>Publish WAR artifact]
+        D --> E[SonarQube<br/>Code quality gate]
+        C --> F[Docker build<br/>Tomcat container image]
+        F --> G[Trivy scan<br/>Vulnerability report]
+        G --> H[AWS ECR<br/>Push image]
+        H --> I[Helm deploy to EKS<br/>Atomic upgrade with rollback on failure]
+    end
+
+    I --> J
+
+    subgraph J[AWS EKS cluster - namespace: ecommerce]
+        K[Load balancer<br/>Public NLB endpoint] --> L[ecommerce-api pods<br/>Spring Boot + storefront UI]
+        L --> M[(MySQL pod<br/>Product and order data)]
+        L -.-> N[HPA autoscaler<br/>2 to 6 replicas]
+    end
+```
