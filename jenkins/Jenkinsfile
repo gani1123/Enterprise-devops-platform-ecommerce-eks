@@ -9,7 +9,7 @@ pipeline {
         ECR_REPO        = "${ECR_REGISTRY}/ecommerce-api"
         IMAGE_TAG       = "${APP_VERSION}-${BUILD_NUMBER}"
         NEXUS_URL       = 'http://32.193.251.152:8081/repository/maven-releases'
-        SONAR_URL       = 'http://sonarqube:9000'
+        SONAR_URL       = 'http://32.193.251.152:9000'
         HELM_CHART      = 'helm-monolith'
         K8S_NAMESPACE   = 'ecommerce'
         EKS_CLUSTER     = 'enterprise-eks-us-east-1'
@@ -75,7 +75,7 @@ pipeline {
                             mvn sonar:sonar \
                                 -Dsonar.projectKey=ecommerce-api \
                                 -Dsonar.projectName='E-commerce API' \
-                                -Dsonar.host.url=${SONAR_URL} \
+                                -Dsonar.host.url=http://32.193.251.152:9000 \
                                 -Dsonar.java.binaries=target/classes
                         """
                     }
