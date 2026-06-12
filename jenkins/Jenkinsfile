@@ -50,27 +50,24 @@ pipeline {
                 }
             }
         }
-
         stage('Publish WAR to Nexus') {
             steps {
                 dir('app-monolith') {
-                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials',
-                                                      usernameVariable: 'NEXUS_USER',
-                                                      passwordVariable: 'NEXUS_PASS')]) {
-                        sh '''
-                            mvn deploy:deploy-file \
-                                -DgroupId=com.enterprise \
-                                -DartifactId=ecommerce-api \
-                                -Dversion=1.0.1 \
-                                -Dpackaging=war \
-                                -Dfile=target/ecommerce-api.war \
-                                -DrepositoryId=nexus-releases \
-                                -Durl=http://32.193.251.152:8081/repository/maven-releases \
-                                -Dusername=admin \
-                                -Dpassword=Ganesh@1123
-                        '''
-                    }
+                    sh '''
+                        mvn deploy:deploy-file \
+                            -DgroupId=com.enterprise \
+                            -DartifactId=ecommerce-api \
+                            -Dversion=1.0.1 \
+                            -Dpackaging=war \
+                            -Dfile=target/ecommerce-api.war \
+                            -DrepositoryId=nexus-releases \
+                            -Durl=http://32.193.251.152:8081/repository/maven-releases \
+                            -Dusername=admin \
+                            -Dpassword=Ganesh@1123
+                    '''
                 }
+            }
+        }
             }
         }
 
