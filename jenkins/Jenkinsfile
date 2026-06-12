@@ -57,18 +57,18 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'nexus-credentials',
                                                       usernameVariable: 'NEXUS_USER',
                                                       passwordVariable: 'NEXUS_PASS')]) {
-                        sh """
+                        sh '''
                             mvn deploy:deploy-file \
                                 -DgroupId=com.enterprise \
                                 -DartifactId=ecommerce-api \
-                                -Dversion=${APP_VERSION} \
+                                -Dversion=1.0.0 \
                                 -Dpackaging=war \
                                 -Dfile=target/ecommerce-api.war \
                                 -DrepositoryId=nexus-releases \
-                                -Durl=$NEXUS_URL \
-                                -Dusername=$NEXUS_USER \
-                                -Dpassword=$NEXUS_PASS
-                        """
+                                -Durl=http://32.193.251.152:8081/repository/maven-releases \
+                                -Dusername=admin \
+                                -Dpassword=Ganesh@1123
+                        '''
                     }
                 }
             }
