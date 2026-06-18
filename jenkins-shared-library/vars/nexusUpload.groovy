@@ -1,18 +1,16 @@
-def call() {
+def call(Map config = [:]) {
 
-    dir('app-monolith') {
+    dir(config.appDir) {
 
-        sh '''
+        sh """
             mvn deploy:deploy-file \
-            -DgroupId=com.enterprise \
-            -DartifactId=ecommerce-api \
-            -Dversion=1.0.0 \
-            -Dpackaging=war \
-            -Dfile=target/ecommerce-api.war \
-            -DrepositoryId=nexus-releases \
-            -Durl=http://32.193.251.152:8081/repository/maven-releases
-        '''
-
+                -DgroupId=com.enterprise \
+                -DartifactId=${config.projectKey} \
+                -Dversion=${config.appVersion} \
+                -Dpackaging=war \
+                -Dfile=target/${config.projectKey}.war \
+                -DrepositoryId=nexus-releases \
+                -Durl=${config.nexusUrl}
+        """
     }
-
 }

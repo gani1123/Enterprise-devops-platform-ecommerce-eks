@@ -1,9 +1,12 @@
-def call() {
+def call(Map config = [:]) {
 
-    dir('app-monolith') {
+    dir(config.appDir) {
 
-        sh "docker build -t ${ECR_REPO}:${IMAGE_TAG} -t ${ECR_REPO}:latest ."
+        sh """
+            docker build \
+                -t ${config.ecrRepo}:${config.imageTag} \
+                -t ${config.ecrRepo}:latest .
+        """
 
     }
-
 }

@@ -4,28 +4,19 @@ pipeline {
 
     agent any
 
-<<<<<<< HEAD
-    options {
-        timestamps()
-        disableConcurrentBuilds()
-        buildDiscarder(logRotator(numToKeepStr: '20'))
-    }
-
-    environment {
-        AWS_REGION       = 'us-east-1'
-        ECR_REPO         = "${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ecommerce-api"
-        EKS_CLUSTER      = 'enterprise-eks-us-east-1'
-        IMAGE_TAG        = "${env.BUILD_NUMBER}"
-        K8S_NAMESPACE    = 'ecommerce'
-        MONITORING_NS    = 'monitoring'
-=======
     environment {
         APP_NAME      = 'ecommerce-api'
+        APP_DIR       = 'app-monolith'
         APP_VERSION   = '1.0.0'
+
         AWS_REGION    = 'us-east-1'
         ECR_REGISTRY  = '962800862954.dkr.ecr.us-east-1.amazonaws.com'
         ECR_REPO      = "${ECR_REGISTRY}/ecommerce-api"
         IMAGE_TAG     = "${APP_VERSION}-${BUILD_NUMBER}"
+
+        NEXUS_URL     = 'http://32.193.251.152:8081/repository/maven-releases'
+        SONAR_URL     = 'http://32.193.251.152:9000'
+
         HELM_CHART    = 'helm-monolith'
         K8S_NAMESPACE = 'ecommerce'
         EKS_CLUSTER   = 'enterprise-eks-us-east-1'
@@ -34,267 +25,98 @@ pipeline {
     tools {
         maven 'Maven-3.9'
         jdk 'JDK-17'
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 60, unit: 'MINUTES')
+        timestamps()
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-<<<<<<< HEAD
-                checkout scm
+                checkoutCode(
+                    branch: 'main',
+                    repoUrl: 'https://github.com/gani1123/Enterprise-devops-platform-ecommerce-eks.git',
+                    credentialsId: 'github-cred'
+                )
             }
         }
 
-        stage('Maven WAR Build + Unit Tests') {
+        stage('Build WAR') {
             steps {
-                sh 'mvn clean package -DskipTests=false'
-            }
-            post {
-                always {
-                    junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
-                }
+                buildWar(
+                    appDir: APP_DIR
+                )
             }
         }
 
         stage('Publish WAR to Nexus') {
-            steps {
-                sh 'mvn deploy -DskipTests=true'
-=======
-                checkoutCode()
-            }
-        }
+    steps {
+        nexusUpload(
+            appDir: APP_DIR,
+            nexusUrl: NEXUS_URL,
+            appVersion: APP_VERSION,
+            projectKey: APP_NAME
+        )
+    }
+}
 
-        stage('Build') {
+        stage('SonarQube Scan') {
             steps {
-                buildWar()
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
-            }
-        }
-
-        stage('Publish WAR') {
-            steps {
-<<<<<<< HEAD
-                withSonarQubeEnv('sonarqube-server') {
-                    sh 'mvn sonar:sonar'
-                }
-            }
-        }
-        stage('Quality Gate Check') {
-            steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-=======
-                nexusUpload()
-            }
-        }
-
-        stage('Sonar') {
-            steps {
-                sonarScan()
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
+                sonarScan(
+                    appDir: APP_DIR,
+                    sonarUrl: SONAR_URL,
+                    projectKey: APP_NAME,
+                    projectName: 'E-commerce API'
+                )
             }
         }
 
         stage('Docker Build') {
             steps {
-<<<<<<< HEAD
-                sh """
-                    docker build -t ${ECR_REPO}:${IMAGE_TAG} .
-                """
-=======
-                dockerBuild()
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
+                dockerBuild(
+                    appDir: APP_DIR,
+                    ecrRepo: ECR_REPO,
+                    imageTag: IMAGE_TAG
+                )
             }
         }
 
-        stage('Trivy') {
+        stage('Trivy Scan') {
             steps {
-<<<<<<< HEAD
-                sh """
-                    trivy image --severity HIGH,CRITICAL --exit-code 1 ${ECR_REPO}:${IMAGE_TAG}
-                """
-=======
-                trivyScan()
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
+                trivyScan(
+                    ecrRepo: ECR_REPO,
+                    imageTag: IMAGE_TAG
+                )
             }
         }
 
-        stage('Push Image') {
+        stage('Push Image to ECR') {
             steps {
-<<<<<<< HEAD
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'AWS-cred',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    sh """
-                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
-                        docker push ${ECR_REPO}:${IMAGE_TAG}
-                    """
-                }
+                dockerPush(
+                    awsRegion: AWS_REGION,
+                    ecrRegistry: ECR_REGISTRY,
+                    ecrRepo: ECR_REPO,
+                    imageTag: IMAGE_TAG
+                )
             }
         }
 
-        // ---------------------------------------------------------------
-        // APPROVAL GATE 1 — Staging
-        // ---------------------------------------------------------------
-        stage('Approval: Deploy to Staging') {
+        stage('Deploy to EKS') {
             steps {
-                timeout(time: 30, unit: 'MINUTES') {
-                    input message: "Deploy build #${env.BUILD_NUMBER} to Staging?",
-                          ok: 'Yes, Deploy',
-                          submitter: 'devops-team,team-lead'
-                }
-            }
-        }
-
-        stage('Helm Deploy to EKS (Staging)') {
-            steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'AWS-cred',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    sh """
-                        aws eks update-kubeconfig --name ${EKS_CLUSTER} --region ${AWS_REGION}
-                        helm upgrade --install ecommerce-api ./helm/ecommerce-api \
-                            --namespace ${K8S_NAMESPACE} \
-                            --create-namespace \
-                            --set image.repository=${ECR_REPO} \
-                            --set image.tag=${IMAGE_TAG} \
-                            --set environment=staging \
-                            --wait --timeout 5m
-                    """
-                }
-=======
-                dockerPush()
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                deployEKS()
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
-            }
-        }
-
-        // ---------------------------------------------------------------
-        // APPROVAL GATE 2 — Production
-        // ---------------------------------------------------------------
-        stage('Approval: Deploy to Production') {
-            steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    script {
-                        def approver = input(
-                            message: "Deploy ecommerce-api build #${env.BUILD_NUMBER} to PRODUCTION?",
-                            ok: 'Approve',
-                            submitter: 'senior-devops,release-manager',
-                            parameters: [
-                                string(name: 'REASON', defaultValue: '', description: 'Reason for approval'),
-                                choice(name: 'ENVIRONMENT', choices: ['prod-us-east-1'], description: 'Target environment')
-                            ]
-                        )
-                        echo "Production deploy approved by: ${approver}"
-                    }
-                }
-            }
-        }
-
-        stage('Helm Deploy to EKS (Production)') {
-            steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'AWS-cred',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    sh """
-                        aws eks update-kubeconfig --name ${EKS_CLUSTER} --region ${AWS_REGION}
-                        helm upgrade --install ecommerce-api ./helm/ecommerce-api \
-                            --namespace ${K8S_NAMESPACE} \
-                            --set image.repository=${ECR_REPO} \
-                            --set image.tag=${IMAGE_TAG} \
-                            --set environment=production \
-                            --wait --timeout 5m
-                    """
-                }
-            }
-        }
-
-        // ---------------------------------------------------------------
-        // APPROVAL GATE 3 — Monitoring stack (optional, infra changes rarely)
-        // ---------------------------------------------------------------
-        stage('Approval: Deploy Monitoring Stack') {
-            when {
-                branch 'main'
-            }
-            steps {
-                timeout(time: 30, unit: 'MINUTES') {
-                    input message: 'Apply/Update Prometheus + Grafana monitoring stack?',
-                          ok: 'Yes, Deploy',
-                          submitter: 'devops-team,team-lead'
-                }
-            }
-        }
-
-        stage('Deploy Monitoring Stack') {
-            when {
-                branch 'main'
-            }
-            steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'AWS-cred',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    sh '''
-                        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-                        helm repo update
-
-                        helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
-                            --namespace monitoring \
-                            --create-namespace \
-                            --set prometheus.prometheusSpec.scrapeInterval=15s \
-                            --set grafana.adminPassword=admin123 \
-                            --set grafana.service.type=LoadBalancer \
-                            --wait --timeout 5m
-                    '''
-                }
-            }
-        }
-
-        stage('Apply Prometheus Scrape Config') {
-            when {
-                branch 'main'
-            }
-            steps {
-                sh """
-                    kubectl create configmap prometheus-scrape-config \
-                        --from-file=prometheus.yml=docker-compose/prometheus.yml \
-                        --namespace ${MONITORING_NS} \
-                        --dry-run=client -o yaml | kubectl apply -f -
-                """
-            }
-        }
-
-        stage('Import Grafana Dashboard') {
-            when {
-                branch 'main'
-            }
-            steps {
-                sh """
-                    kubectl create configmap ecommerce-grafana-dashboard \
-                        --from-file=grafana-dashboard.json=monitoring/grafana-dashboard.json \
-                        --namespace ${MONITORING_NS} \
-                        --dry-run=client -o yaml \
-                    | kubectl label --local -f - grafana_dashboard=1 --dry-run=client -o yaml \
-                    | kubectl apply -f -
-                """
+                deployEKS(
+                    awsRegion: AWS_REGION,
+                    eksCluster: EKS_CLUSTER,
+                    namespace: K8S_NAMESPACE,
+                    helmChart: HELM_CHART,
+                    appName: APP_NAME,
+                    appVersion: APP_VERSION,
+                    ecrRepo: ECR_REPO,
+                    imageTag: IMAGE_TAG
+                )
             }
         }
     }
@@ -302,27 +124,18 @@ pipeline {
     post {
 
         success {
-<<<<<<< HEAD
-            echo "Pipeline completed successfully for build #${env.BUILD_NUMBER}"
-=======
-            echo "Deployment Successful"
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
+            echo "✅ ${APP_NAME}:${IMAGE_TAG} deployed successfully."
         }
 
         failure {
-<<<<<<< HEAD
-            echo "Pipeline failed for build #${env.BUILD_NUMBER}"
-=======
-            echo "Pipeline Failed"
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
+            echo "❌ Pipeline failed."
         }
 
         always {
-<<<<<<< HEAD
-            cleanWs()
-=======
-            cleanup()
->>>>>>> 72aa7ff (Updated Jenkinsfile and shared library)
+            cleanup(
+                ecrRepo: ECR_REPO,
+                imageTag: IMAGE_TAG
+            )
         }
     }
 }

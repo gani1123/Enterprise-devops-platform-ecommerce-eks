@@ -1,7 +1,8 @@
-def call() {
+def call(Map config = [:]) {
 
-    sh "docker rmi ${ECR_REPO}:${IMAGE_TAG} || true"
+    sh """
+        docker rmi ${config.ecrRepo}:${config.imageTag} || true
+    """
 
     cleanWs()
-
 }

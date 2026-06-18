@@ -1,23 +1,21 @@
-def call() {
+def call(Map config = [:]) {
 
-    dir('app-monolith') {
+    dir(config.appDir) {
 
         withSonarQubeEnv('sonarqube') {
 
-            sh '''
+            sh """
                 mvn sonar:sonar \
-                -Dsonar.projectKey=ecommerce-api \
-                -Dsonar.projectName="E-commerce API" \
-                -Dsonar.host.url=http://32.193.251.152:9000 \
-                -Dsonar.java.binaries=target/classes
-            '''
+                    -Dsonar.projectKey=${config.projectKey} \
+                    -Dsonar.projectName='${config.projectName}' \
+                    -Dsonar.host.url=${config.sonarUrl} \
+                    -Dsonar.java.binaries=target/classes
+            """
 
         }
-
     }
 
     timeout(time: 10, unit: 'MINUTES') {
         waitForQualityGate abortPipeline: true
     }
-
 }
