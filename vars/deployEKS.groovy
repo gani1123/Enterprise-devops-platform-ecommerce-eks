@@ -1,11 +1,17 @@
-deployEKS(
-    awsRegion: AWS_REGION,
-    awsCredentialsId: 'AWS-cred',
-    eksCluster: EKS_CLUSTER,
-    namespace: K8S_NAMESPACE,
-    helmChart: HELM_CHART,
-    appName: APP_NAME,
-    appVersion: APP_VERSION,
-    ecrRepo: ECR_REPO,
-    imageTag: IMAGE_TAG
-)
+def call() {
+
+    def awsRegion = env.AWS_REGION ?: "us-east-1"
+    def cluster = "enterprise-eks-us-east-1"
+    def namespace = "ecommerce"
+
+    echo "🚀 Deploying to EKS..."
+
+    sh """
+        aws eks update-kubeconfig --region ${awsRegion} --name ${cluster}
+
+        kubectl get nodes
+
+        kubectl apply -f k8s/deployment.yaml -n ${namespace}
+        kubectl apply -f k8s/service.yaml -n ${namespace}
+    """
+}
