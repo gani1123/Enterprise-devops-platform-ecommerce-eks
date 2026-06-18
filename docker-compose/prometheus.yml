@@ -11,15 +11,14 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'ecommerce-api-jmx'
-    metrics_path: '/metrics'
+  - job_name: 'ecommerce-api-eks'
+    metrics_path: '/ecommerce-api/actuator/prometheus'
     scrape_interval: 30s
     static_configs:
-      - targets: ['host.docker.internal:9090']
+      - targets: ['a9c049c0143b243088601ba6ad8c5349-1627a30220a41251.elb.us-east-1.amazonaws.com:80']
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        regex: '(.+):\d+'
         replacement: 'ecommerce-api'
 
   - job_name: 'product-service-jmx'
