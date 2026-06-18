@@ -1,4 +1,4 @@
-@Library('enterprise-library') _
+@Library('devops-pipeline-library') _
 
 pipeline {
 
