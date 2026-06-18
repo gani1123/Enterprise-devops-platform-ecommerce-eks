@@ -1,9 +1,0 @@
-com\enterprise\ecommerce\model\Product.class
-com\enterprise\ecommerce\repository\OrderRepository.class
-com\enterprise\ecommerce\service\OrderService.class
-com\enterprise\ecommerce\controller\HealthController.class
-com\enterprise\ecommerce\controller\OrderController.class
-com\enterprise\ecommerce\controller\ProductController.class
-com\enterprise\ecommerce\repository\ProductRepository.class
-com\enterprise\ecommerce\EcommerceApplication.class
-com\enterprise\ecommerce\model\Order.class
