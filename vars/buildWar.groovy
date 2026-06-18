@@ -1,13 +1,14 @@
 def call() {
 
-    dir('app-monolith') {
+    def appDir = "app-monolith"   // ✅ define here instead of passing
 
+    echo "Building WAR from ${appDir}..."
+
+    dir(appDir) {
         sh 'mvn clean package -DskipTests=false -Dmaven.test.failure.ignore=false'
-
     }
 
-    junit 'app-monolith/target/surefire-reports/*.xml'
+    junit "${appDir}/target/surefire-reports/*.xml"
 
-    archiveArtifacts artifacts: 'app-monolith/target/*.war', fingerprint: true
-
+    archiveArtifacts artifacts: "${appDir}/target/*.war", fingerprint: true
 }

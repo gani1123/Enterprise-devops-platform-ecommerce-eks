@@ -1,16 +1,16 @@
-def call(Map config = [:]) {
+def call() {
 
-    dir(config.appDir) {
+    def appDir = "app-monolith"
+    def nexusUrl = "http://your-nexus-url"
+    def appVersion = "1.0.0"
+    def projectKey = "ecommerce-api"
 
+    echo "Uploading WAR to Nexus..."
+
+    dir(appDir) {
         sh """
-            mvn deploy:deploy-file \
-                -DgroupId=com.enterprise \
-                -DartifactId=${config.projectKey} \
-                -Dversion=${config.appVersion} \
-                -Dpackaging=war \
-                -Dfile=target/${config.projectKey}.war \
-                -DrepositoryId=nexus-releases \
-                -Durl=${config.nexusUrl}
+            curl -v -u admin:admin123 \
+            --upload-file target/${projectKey}.war \
+            ${nexusUrl}/repository/maven-releases/${projectKey}/${appVersion}/${projectKey}-${appVersion}.war
         """
-    }
-}
+    }}
