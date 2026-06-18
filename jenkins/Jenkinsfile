@@ -94,10 +94,7 @@ pipeline {
         stage('Push Image to ECR') {
             steps {
                 dockerPush(
-                    awsRegion: AWS_REGION,
-                    ecrRegistry: ECR_REGISTRY,
-                    ecrRepo: ECR_REPO,
-                    imageTag: IMAGE_TAG
+            
                 )
             }
         }
