@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise E-Commerce</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  body { background:#f4f6f8; color:#1a1a2e; }
+  header { background:#1a1a2e; color:#fff; padding:24px 40px; display:flex; justify-content:space-between; align-items:center; }
+  header h1 { font-size:24px; font-weight:600; }
+  .status { font-size:13px; padding:6px 14px; border-radius:20px; background:#2ecc71; color:#fff; }
+  .status.down { background:#e74c3c; }
+  main { max-width:1100px; margin:0 auto; padding:40px 20px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:24px; margin-top:24px; }
+  .card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); transition:transform .15s; }
+  .card:hover { transform:translateY(-4px); box-shadow:0 6px 16px rgba(0,0,0,0.1); }
+  .card h3 { font-size:17px; margin-bottom:8px; }
+  .card p { font-size:13px; color:#666; margin-bottom:12px; line-height:1.4; }
+  .price { font-size:20px; font-weight:700; color:#2563eb; }
+  .stock { font-size:12px; color:#888; margin-top:6px; }
+  .loading, .error { text-align:center; padding:60px; color:#888; }
+  footer { text-align:center; padding:30px; color:#999; font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛒 Enterprise E-Commerce</h1>
+  <span class="status" id="status">Checking...</span>
+</header>
+<main>
+  <h2>Product Catalog</h2>
+  <div class="grid" id="products"><div class="loading">Loading products...</div></div>
+</main>
+<footer>
+  Built with Spring Boot &middot; Deployed on AWS EKS via Jenkins CI/CD Pipeline
+</footer>
+<script>
+const API_BASE = '/ecommerce-api/ecommerce-api';
+
+async function loadHealth() {
+  const statusEl = document.getElementById('status');
+  try {
+    const res = await fetch(`${API_BASE}/health`);
+    const data = await res.json();
+    statusEl.textContent = `v${data.version} - ${data.status}`;
+    if (data.status !== 'UP') statusEl.classList.add('down');
+  } catch (e) {
+    statusEl.textContent = 'API Unreachable';
+    statusEl.classList.add('down');
+  }
+}
+
+async function loadProducts() {
+  const grid = document.getElementById('products');
+  try {
+    const res = await fetch(`${API_BASE}/products`);
+    const products = await res.json();
+    grid.innerHTML = products.map(p => `
+      <div class="card">
+        <h3>${p.name}</h3>
+        <p>${p.description}</p>
+        <div class="price">$${p.price.toFixed(2)}</div>
+        <div class="stock">In stock: ${p.stock}</div>
+      </div>
+    `).join('');
+  } catch (e) {
+    grid.innerHTML = '<div class="error">Failed to load products.</div>';
+  }
+}
+
+loadHealth();
+loadProducts();
+</script>
+</body>
+</html>
