@@ -4,6 +4,14 @@
 
 ---
 
+## 📸 Live Application
+
+![Inventory Dashboard](inventory-dashboard.png)
+
+> Real-time inventory dashboard deployed on AWS EKS — 5 SKUs • 455 units in stock • $110,495 inventory value • Live stock alerts
+
+---
+
 ## 🏗️ Architecture Overview
 
 ```
@@ -21,6 +29,7 @@ GitHub → Jenkins → Maven Build → Nexus → SonarQube → Docker → Trivy 
 | Security Scanning | Trivy |
 | Container Registry | AWS ECR |
 | Deployment | AWS EKS + Helm |
+| Monitoring | Prometheus + Grafana |
 | Notifications | Slack + Email |
 
 ---
@@ -29,15 +38,15 @@ GitHub → Jenkins → Maven Build → Nexus → SonarQube → Docker → Trivy 
 
 ```
 Enterprise-devops-platform-ecommerce-eks/
-├── app-monolith/               # Monolith Spring Boot WAR application
-├── app-order-service/          # Order microservice
-├── app-product-service/        # Product microservice
-├── helm-monolith/              # Helm chart — monolith deployment
+├── app-monolith/               # Core Spring Boot WAR application
+├── app-order-service/          # Order processing microservice
+├── app-product-service/        # Product catalog microservice
+├── helm-monolith/              # Helm chart — monolith
 ├── helm-order-service/         # Helm chart — order service
 ├── helm-product-service/       # Helm chart — product service
-├── docker-compose/             # Local development setup
-├── jenkins/                    # Jenkinsfile for pipeline
-├── vars/                       # Jenkins Shared Library functions
+├── jenkins/                    # Jenkinsfile pipeline definition
+├── jenkins-shared-library/     # Reusable shared library (Groovy)
+├── vars/                       # Shared library functions
 │   ├── checkoutCode.groovy
 │   ├── buildWar.groovy
 │   ├── nexusUpload.groovy
@@ -51,21 +60,25 @@ Enterprise-devops-platform-ecommerce-eks/
 │   ├── cleanup.groovy
 │   ├── slackNotification.groovy
 │   └── emailNotification.groovy
-└── README.md
+├── k8s/                        # Raw Kubernetes manifests
+├── monitoring/                 # Prometheus + Grafana setup
+├── docker-compose/             # Local development environment
+├── resources/                  # Pipeline resources & configs
+└── src/com/company             # Shared library source classes
 ```
 
 ---
 
 ## 📚 Jenkins Shared Library — Core Design
 
-This project uses a **reusable Jenkins Shared Library** (`devops-pipeline-library`) instead of monolithic Jenkinsfiles. Each pipeline stage calls a dedicated Groovy function from `vars/` — making pipelines clean, DRY, and maintainable across multiple applications.
+Instead of monolithic Jenkinsfiles, this project uses a **reusable Jenkins Shared Library** (`devops-pipeline-library`). Each stage calls a dedicated Groovy function — making pipelines clean, DRY, and reusable across multiple applications.
 
 ### Why Shared Libraries?
 
 | Without Shared Library | With Shared Library |
 |---|---|
 | 300+ line Jenkinsfile per app | 50-line Jenkinsfile per app |
-| Copy-paste across teams | Single source of truth |
+| Copy-paste logic across teams | Single source of truth |
 | Hard to update pipeline logic | Change once, applies everywhere |
 | Inconsistent standards | Enforced standards across all apps |
 
@@ -96,7 +109,7 @@ This project uses a **reusable Jenkins Shared Library** (`devops-pipeline-librar
 pipeline {
   stages {
     stage('Checkout')            // Pull code from GitHub
-    stage('Build WAR')           // Maven build + tests
+    stage('Build WAR')           // Maven build + unit tests
     stage('Publish to Nexus')    // Upload WAR artifact
     stage('SonarQube Scan')      // Code quality gate
     stage('Docker Build')        // Build container image
@@ -112,13 +125,13 @@ pipeline {
 - 🔄 Rolling deployments — zero downtime
 - 🧹 Automatic cleanup of local images post-deploy
 - 📧 Slack + Email notifications on success/failure
-- 🔒 Credentials managed via Jenkins credential store (no hardcoded secrets)
+- 🔒 All credentials via Jenkins credential store — no hardcoded secrets
 
 ---
 
 ## ☸️ Kubernetes — EKS Deployment
 
-**Cluster:** `enterprise-eks-us-east-1`  
+**Cluster:** `enterprise-eks-us-east-1`
 **Namespace:** `ecommerce`
 
 ```bash
@@ -133,19 +146,29 @@ kubectl get hpa -n ecommerce
 - Maximum replicas: 6
 - Scale trigger: CPU utilization
 
-**Deployment Strategy:** Rolling update — ensures zero downtime during releases.
+**Deployment Strategy:** Rolling update — zero downtime during every release.
 
 ---
 
-## 🔐 DevSecOps — Security Built Into Pipeline
+## 📊 Monitoring Stack
 
-Security is **not a final gate** — it's integrated at every layer:
+Monitoring setup lives in the `monitoring/` folder:
+
+- **Prometheus** — metrics collection from EKS pods
+- **Grafana** — dashboards for CPU, memory, pod health
+- Alerts configured for pod crash, high CPU, deployment failures
+
+---
+
+## 🔐 DevSecOps — Security at Every Layer
+
+Security is **not a final gate** — it's integrated throughout the pipeline:
 
 | Stage | Tool | What It Checks |
 |---|---|---|
 | Code commit | SonarQube | Code quality, bugs, vulnerabilities, coverage |
 | Container build | Trivy | OS packages, dependency CVEs in Docker image |
-| AWS access | IAM Roles | No long-lived credentials — role-based auth |
+| AWS access | IAM Roles | No long-lived credentials — role-based auth only |
 | Registry | ECR | Private registry with IAM-controlled access |
 
 > Pipeline **automatically fails** if Trivy detects CRITICAL vulnerabilities — image is never pushed to ECR.
@@ -160,10 +183,7 @@ Security is **not a final gate** — it's integrated at every layer:
 | `app-order-service` | Order processing REST API | Spring Boot |
 | `app-product-service` | Product catalog REST API | Spring Boot |
 
-Each service has its own:
-- Helm chart for Kubernetes deployment
-- Independent pipeline stage
-- ECR repository
+Each service has its own Helm chart, ECR repository, and independent pipeline.
 
 ---
 
@@ -185,13 +205,14 @@ docker ps
 
 ## 📊 Key Metrics
 
-| Metric | Result |
+| Metric | Value |
 |---|---|
-| Pipeline execution time | ~12 minutes end-to-end |
+| Pipeline stages | 8 end-to-end |
+| Shared library functions | 13 reusable Groovy functions |
+| Microservices deployed | 3 (monolith + order + product) |
 | Deployment strategy | Rolling (zero downtime) |
-| Security gates | Trivy + SonarQube (blocks on CRITICAL) |
-| Environments supported | Dev, Staging, Production |
-| Auto-scaling range | 2 → 6 replicas |
+| Security gates | Trivy + SonarQube — blocks on CRITICAL |
+| Auto-scaling range | 2 → 6 replicas (CPU-based HPA) |
 
 ---
 
@@ -200,13 +221,13 @@ docker ps
 - [ ] ArgoCD GitOps — replace Jenkins deploy stage
 - [ ] Ingress Controller + Route53 custom domain
 - [ ] HTTPS via AWS ACM
-- [ ] Prometheus + Grafana monitoring stack
 - [ ] Canary deployments via Argo Rollouts
+- [ ] Centralized secrets with HashiCorp Vault
 
 ---
 
 ## 👨‍💻 Author
 
-**Ganesh Nalli** — AWS DevOps Engineer  
-🔗 [LinkedIn](https://linkedin.com/in/ganeshnalli) • [GitHub](https://github.com/gani1123)  
+**Ganesh Nalli** — AWS DevOps Engineer
+🔗 [LinkedIn](https://linkedin.com/in/ganeshnalli) • [GitHub](https://github.com/gani1123)
 📧 ganeshnalli.devops@gmail.com
