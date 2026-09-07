@@ -19,7 +19,7 @@ pipeline {
 
         HELM_CHART    = 'helm-monolith'
         K8S_NAMESPACE = 'ecommerce'
-        EKS_CLUSTER   = 'enterprise-eks-us-east-1'
+        EKS_CLUSTER   = 'my-cluster'
     }
 
     tools {
