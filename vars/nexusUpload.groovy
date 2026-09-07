@@ -9,7 +9,7 @@ def call() {
 
     dir(appDir) {
         sh """
-            curl -v -u admin:admin123 \
+            curl -v -u admin:Ganesh@1123 \
             --upload-file target/${projectKey}.war \
             ${nexusUrl}/repository/maven-releases/${projectKey}/${appVersion}/${projectKey}-${appVersion}.war
         """
