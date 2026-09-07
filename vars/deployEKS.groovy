@@ -1,7 +1,7 @@
 def call(Map config = [:]) {
 
     def awsRegion = config.awsRegion ?: "us-east-1"
-    def cluster = config.eksCluster ?: "enterprise-eks-us-east-1"
+    def cluster = config.eksCluster ?: "my-cluster"
     def namespace = config.namespace ?: "ecommerce"
 
     echo "🚀 Deploying to EKS..."
