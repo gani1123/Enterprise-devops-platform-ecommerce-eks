@@ -14,8 +14,8 @@ pipeline {
         ECR_REPO      = "${ECR_REGISTRY}/ecommerce-api"
         IMAGE_TAG     = "${APP_VERSION}-${BUILD_NUMBER}"
 
-        NEXUS_URL     = 'http://32.193.251.152:8081/repository/maven-releases'
-        SONAR_URL     = 'http://32.193.251.152:9000'
+        NEXUS_URL     = 'http://44.221.172.70:8081/repository/maven-releases'
+        SONAR_URL     = 'http://44.221.172.70:9000'
 
         HELM_CHART    = 'helm-monolith'
         K8S_NAMESPACE = 'ecommerce'
