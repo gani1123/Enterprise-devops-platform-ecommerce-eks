@@ -1,7 +1,7 @@
 def call() {
 
     def appDir = "app-monolith"
-    def nexusUrl = "http://172.31.28.35:8081"
+    def nexusUrl = "http://172.31.16.74:8081"
     def appVersion = "1.0.0"
     def projectKey = "ecommerce-api"
 
